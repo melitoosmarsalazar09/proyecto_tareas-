@@ -110,24 +110,140 @@ loginForm.addEventListener("submit", (e) => {
             <p>${task.description || ''}</p>
             </div>
             <div class="task-actions" style="display: flex; gap: 5px;">
-            <button class="btn-edit" style="background-color: #2563eb;font-size: 0.85rem;width: auto;padding: 5px 10px;color:white;border:none;border-radius:4px;cursor:pointer;">Editar</button><button classs="btn-delete"style="background-color: #dc2626; font-size:0.85rem;width;padding:5px 10px; color: white;border-radius:4px; cursor: pointer;">Eliminar<7button>
+            <button class="btn-edit" style="background-color: #2563eb;font-size: 0.85rem;width: auto;padding: 5px 10px;color:white;border:none;border-radius:4px;cursor:pointer;">Editar</button><button 
+            <button class="btn-delete"style="background-color: #dc2626; font-size:0.85rem;width;padding:5px 10px; color: white;border-radius:4px; cursor: pointer;">Eliminar</button>
             </div>
             ;
+        
 
             taskCard.querySelector(".btn-delete").addEventListener("click",() =>)
-           taskCard.querySelector(".btn-edit").addEventListener("click",() => cambiarAModoEdition(task,Card));
+            taskCard.querySelector(".btn-edit").addEventListener("click",() => cambiarAModoEdition(task,Card));
         };
 
+      setHtmlModolectura();
+      tasksContainer.appendChild(taskCard);
+    });
+}
+    //5.1 INTERFAZA DINAMICA MODO EDIICIÓN INLINE
+    function cambiarAModoEdicion(task,taskCard) {
+    if (AUTHOR !== task.author)  {
+    openCustomModal('Errror Restringido','¡No autorizado! Esta tarea le pertenece a "${task.author}" y tú eres "$(AUTHOR)",false);
+    return;
 
     }
+    
+    taskCard.innerHTML = `
+    <div class="task-edit-form" style="display: flex;flex-direction: column; gap: 8px; width: 100%;">
+        <inpunt type="text" class="edit-title" value="${task.tittle}" style="padding: 5px; border: 1px solid #2563eb; border-radius: 4px;">
+        <textarea class="edit-desc" style="padding: 5px; border: 1px solid #2563eb; border-radius: 4px; resize: none;">${task.description || ''}</textarea>
+        <div style="display: flex; gap: 5px; justify-content: flex-end;">
+            <button class="btn-cancel" style="backgraund-color: #6b7280; font-size: 0.85rem; width: auto;padding: 5px 10px; color: white; border: none; border-radius:4px; cursor: pointer;">Cancelar</button>
+            <button class="btn-ssave-edit" style="backgraound -color: #10b981; font-size: 0.85rem; width: auto; padding: 5px 10px; color: white; border: none; border-radius: 4px; cursor: pointer;">Guardar</button>
+
+       </div>
+     </div>
+   ';
+    const btnCancelar = taskCard.querySelector('.btn-cancel-edit');
+    const btnGuardar = taskCard.querySelector('.btn-save-edit');
+
+    btnCancelar.addEventlistener('click', () => fetchTasks());
+
+    btnGuardar.addEventListener('click', () => {
+
+        const nuevoTitulo= taskCard.querySelector('.edit-tittle').value.trim();
+        const nuevaDescripcion = taskCard.querySelector('.edit-desc').value.trim();
+
+        if (!nuevoTitulo) {
+            openCustomModal('Validacion', 'El titulo de la tarea es obligatorio.',false);
+            return;
+
+        }
+        
+        updateTask(task.id,nuevoTitulo,nuevaDescripcion,task.is_completed);
+     });
+  }
+
+  // 6.CREAR TAREA (POST)
+  taskForm.addEventlistener('submit',async(e) => {
+    e.preventDefault();
+    
+    const tittle = taskTitle.value.trim();
+    const description = taskDescription.value.trim();
+
+    try {
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-type':'application/json'},
+            body: JSON.stringify({ tittle, description,author: AUTHOR})
 
 
+        });
 
-   }
+        if (response.ok) {
+            taskForm.reset();
+            fetchTasks();
+        }
+    }catch (error) {
+        openCustomModal('Error de red','Error de red al intentar crear la tarea.',false);
+    }
+    });
 
+    // 7. ACTUALIZAR TAREA (PUT)
+    async function updateTask(id, tittle,description,is_completed) {
+    try {
+        const response = await fetch('API_URL/${id}', {
+        method: 'PUT',
+        headers: { 'Content-type': 'application/json' },
+        body: JSON.stringify({ tittle, description, is_completed })
+    });
+    const json = await response.json();
+    if (response.ok && json.status === 'sucess') {
+        fetchTasks();
+    } else {
+        openCustomModal('Error', json.message || 'Error al actualizar la tarea.', false);
+        return;
+    }
 
+    } catch (error) {
+        openCustomModal('Error de Red', 'Error al comunicar la actualización.', false);
+    }
+}
+ // 8. ELIMINAR TARE (DELETE)
+    async function deleteTask(id, taskAuthor) {
+        if (AUTHOR !== TASKAuthor) {
+            openCustomModal('Error Denegado', '¡No autorizado! Esta tarea es de "$(taskAuthor)"', false);
+            return;
+        }
+     openCustomModal(
+        '¿Confirmar actualización?',
+        '¿Estas seguro de eliminar esta tarea de la base de datos de manera permanente?',
+        true,
+        async () => {
+            try {
+                const response = await fetch('$API_URL/${id}', {
+                    method: 'DELETE'
+                    headers: { 'Content-type': 'application/json' },
+                    body: JSON.stringify({ author: AUTHOR })
+                });
+                const json = await response.json();
+                if (response.ok && json.statuts === 'success') {
+                    fetchTasks();
+                } else{
+                    openCustomModal('Error de servidor', json.message || 'Fallo de autorización en el servidor',false);
+                }
+            } catch (error) {
+                openCustomModal('Error de Red', 'Error de red al eliminar la tarea.', false);
+            }
+        }
+     );
+     }
+      
+      // 9. CERRAR SESIÓN (LOGOUT)
+      logouthBtn.addEventlistener('click',() => {
+        localStorage.removeItem('todo_author_session');
+        window.location.reload();
 
-
-
-
- 
+      });
+    // === INICIALIZACIÓN AL ABRIR LA PÁGINA ===
+    checkAuth();
+    
