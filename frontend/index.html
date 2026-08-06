@@ -30,5 +30,31 @@
             <div id="tasksContainer"></div>
         </main>
     </div>
+
+    <div id="customModal" class="modal-overlay">
+      <div class="modal-box">
+        <h3 id="modalTitle">Mensaje del Sistema</h3>
+        <p id="modalMessage">Aquí va el texto explicativo.</p>
+        <div class="modal-buttons">
+            <button id="modalCancelBtn" class="btn-secondary">Cancelar</button>
+            <button id="modalConfirmBtn" class="btn-primary">Aceptar</button>
+        </div>
+      </div>  
+    </div>
+    <div id="loginModal" class="modal-overlay">
+        <div class="modal-box">
+            <h3>Identificación de Autor</h3>
+            <p>Por favor, ingresa tu nombre para comenzar a gestionar tus tareas:</p>
+            <form id="loginForm" style="box-shadow: none; padding: 0; margin: 0; display: flex-direction: column; gap: 10px;">
+                <input type="text" id="loginInput" placeholder="Ej. Dhaniel, Ana..." required>
+                <div class="modal-buttons">
+                    <button type="submit" class="btn-primary">Ingresar al panel</button>
+
+                </div>
+            </form>"
+        </div>
+    </div>
+    <script src="app.js"></script>
+
 </body>
 </html>
